@@ -13,12 +13,21 @@
 			</div>
 			<div class="content">
 				<div class="stats">
-					<img src="stats-cpu.png" />
-					<span>Uptime: <b id="statsSYSUptime">up xx days, xx hours</b><span>
-					<span>Speed: <b id="statsCPUSpeed">---MHz</b> (<b id="statsCPUTemp">--°C</b>)<span>
-					<span>Load: <b id="statsSYSLoad"> x.xx, x.xx, x.xx</b><span>
-					<span>Free RAM: <b id="statsRAMFree"> ---MB</b>/<b id="statsRAMTotal"> ---MB</b><span>
-					<span>IP Address: <b id="statsSYSIP"> xxx.xxx.xxx.xxx</b><span>
+                    <table>
+                        <tr>
+                            <td>
+                                <img src="stats-cpu.png" />
+                            </td>
+                            <td>
+                                <span>Host: <b id="statsHostname">hostname</b><span>
+                                <span>Uptime: <b id="statsSYSUptime">up xx days, xx hours</b><span>
+                                <span>Speed: <b id="statsCPUSpeed">---MHz</b> (<b id="statsCPUTemp">--°C</b>)<span>
+                                <span>Load: <b id="statsSYSLoad"> x.xx, x.xx, x.xx</b><span>
+                                <span>Free RAM: <b id="statsRAMFree"> ---MB</b>/<b id="statsRAMTotal"> ---MB</b><span>
+                                <span>IP Address: <b id="statsSYSIP"> xxx.xxx.xxx.xxx</b><span>
+                            </td>
+                        </tr>
+                    </table>
 				</div>
 				<div class="controls">
 					<div onclick="getApi('output','/run/reboot','')" class="option"><img src="reboot.png" /><span>Reboot</span></div>
@@ -30,6 +39,8 @@
 							<div onclick="getApi('output','/run/service/stop/bluetooth','')">Stop</div>
 						</div>
 					</div>
+                    <div onclick="getApi('output','/run/volume/up','')" class="option"><span>Up</span></div>
+                    <div onclick="getApi('output','/run/volume/down','')" class="option"><span>Down</span></div>
 					<div class="line"><label for="password">Security password : </label> <input type="password" name="password" id="password" /></div>
 					<div id="output" class="output"></div>
 				</div>

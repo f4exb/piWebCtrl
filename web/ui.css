@@ -133,7 +133,7 @@ input[type="password"]{
 	border:1px solid #1c1c21;
 	font-size:14px;
 	line-height:0.8;
-	padding:5px;	
+	padding:5px;
 }
 .stats {
 	display:inline-block;
@@ -154,11 +154,11 @@ input[type="password"]{
 }
 .stats span {
 	display:block;
-	line-height:0.9;
+	line-height:1.2;
 	white-space:nowrap;
 	margin-right:10px;
-	
+
 }
 .stats span b {
-	color:#1b6af2
+	color:#a4c6ff
 }

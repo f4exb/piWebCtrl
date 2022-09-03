@@ -11,7 +11,7 @@ import psutil
 from gpiozero import CPUTemperature
 
 
-PORT = 9000
+PORT = 9009
 PASS = "42758"
 WEBPATH = "web"
 
@@ -26,14 +26,24 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif path.exists(WEBPATH+pathSplit[0]) is True:
             self.path = WEBPATH+pathSplit[0]
             return http.server.SimpleHTTPRequestHandler.do_GET(self)
-        
+
         elif pathSection[1] == "stats.json":
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
-            outputJson={"ramfree":str(self.get_ramFree())+"MB","ramtotal":str(self.get_ramTotal())+"MB","cpuspeed":str(self.get_cpu_speed())+"MHz","cputemp":str(self.get_temperature())+"°C","cpuuse":str(self.get_cpu_use())+"%","load":str(self.get_load()),"ip":str(self.get_ipaddress()),"uptime":str(self.get_uptime())}
+            outputJson={
+                "hostname": str(self.get_hostname()),
+                "ramfree": str(self.get_ramFree())+"MB",
+                "ramtotal": str(self.get_ramTotal())+"MB",
+                "cpuspeed": str(self.get_cpu_speed())+"MHz",
+                "cputemp": str(self.get_temperature())+"°C",
+                "cpuuse": str(self.get_cpu_use())+"%",
+                "load": str(self.get_load()),
+                "ip": str(self.get_ipaddress()),
+                "uptime": str(self.get_uptime())
+            }
             return self.wfile.write(bytes(json.dumps(outputJson), "utf-8"))
-        
+
         elif pathSection[1] == "run":
             self.send_response(200)
             self.send_header("Content-type", "application/json")
@@ -48,7 +58,7 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                 elif pathSection[2] == "service":
                     if pathSection[3] == "start" and pathSection[4] is not None:
                         self.wfile.write(bytes('{"html":"Starting the ' + pathSection[4] + ' service.","cmd":null}', "utf-8"))
-                        os.system("sudo systemctl start " + pathSection[4])   
+                        os.system("sudo systemctl start " + pathSection[4])
                     elif pathSection[3] == "stop" and pathSection[4] is not None:
                         self.wfile.write(bytes('{"html":"Stoping the ' + pathSection[4] + ' service.","cmd":null}', "utf-8"))
                         os.system("sudo systemctl stop " + pathSection[4])
@@ -59,27 +69,40 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                         self.wfile.write(bytes('{"html":"Unknown service command","cmd":null}', "utf-8"))
                 else:
                     self.wfile.write(bytes('{"html":"Wrong command","cmd":null}', "utf-8"))
-            else:
+            elif self.getPass(self.path) is not None:
                 self.wfile.write(bytes('{"html":"Wrong password","cmd":null}', "utf-8"))
+            else:
+                if pathSection[2] == "volume":
+                    if pathSection[3] == "up":
+                        os.system("pactl set-sink-volume @DEFAULT_SINK@ +5%")
+                    elif pathSection[3] == "down":
+                        os.system("pactl set-sink-volume @DEFAULT_SINK@ -5%")
+                    else:
+                        self.wfile.write(bytes('{"html":"Unknown volume command","cmd":null}', "utf-8"))
+                else:
+                    self.wfile.write(bytes('{"html":"Wrong command","cmd":null}', "utf-8"))
         else:
             self.send_response(404)
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(bytes('Document requested is not found.', "utf-8"))
         return
-        
+
     def getPass(self,url):
         parsed = urlparse.urlparse("http://localhost"+url)
-        return str(parse_qs(parsed.query)['pass']).replace("['","").replace("']","")
+        if 'pass' in parsed.query:
+            return str(parse_qs(parsed.query)['pass']).replace("['","").replace("']","")
+        else:
+            return None
 
     def get_ramTotal(self):
         memory = psutil.virtual_memory()
         return round(memory.total/1024.0/1024.0,1)
-        
+
     def get_ramFree(self):
         memory = psutil.virtual_memory()
-        return round(memory.available/1024.0/1024.0,1)       
-    
+        return round(memory.available/1024.0/1024.0,1)
+
     def get_cpu_use(self):
         return psutil.cpu_percent()
 
@@ -101,14 +124,14 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
             return load_split[1].replace("\n","")
         except:
             return "n/a"
-    
+
     def get_ipaddress(self):
         try:
             s = subprocess.check_output(["hostname","-I"])
             return s.decode().replace("\n","")
         except:
             return "0.0.0.0"
-    
+
     def get_cpu_speed(self):
         try:
             f = os.popen('/opt/vc/bin/vcgencmd get_config arm_freq')
@@ -119,6 +142,10 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return "n/a"
         except:
             return "n/a"
+
+    def get_hostname(self):
+        s = subprocess.check_output(["hostname"])
+        return s.decode().replace("\n","")
 
 handler_object = MyHttpRequestHandler
 my_server = socketserver.TCPServer(("", PORT), handler_object)
