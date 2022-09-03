@@ -49,6 +49,7 @@ function geStats(id) {
 				document.getElementById("statsSYSLoad").innerHTML=values.load;
 				document.getElementById("statsSYSUptime").innerHTML=values.uptime;
 				document.getElementById("statsSYSIP").innerHTML=values.ip;
+                document.getElementById("statsVolume").innerHTML=values.volume;
 			}
 			else{
 				document.getElementById(id).innerHTML=values.error;

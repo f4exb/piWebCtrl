@@ -40,7 +40,8 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "cpuuse": str(self.get_cpu_use())+"%",
                 "load": str(self.get_load()),
                 "ip": str(self.get_ipaddress()),
-                "uptime": str(self.get_uptime())
+                "uptime": str(self.get_uptime()),
+                "volume": str(self.get_volume())
             }
             return self.wfile.write(bytes(json.dumps(outputJson), "utf-8"))
 
@@ -146,6 +147,13 @@ class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
     def get_hostname(self):
         s = subprocess.check_output(["hostname"])
         return s.decode().replace("\n","")
+
+    def get_volume(self):
+        ps = subprocess.Popen(('pactl', 'list', 'sinks'), stdout=subprocess.PIPE)
+        s = subprocess.check_output(('grep', '^[[:space:]]Volume:'), stdin=ps.stdout)
+        volstr = s.decode().split("\n")[0]
+        volelems = volstr.split("/")
+        return volelems[1].strip()
 
 handler_object = MyHttpRequestHandler
 my_server = socketserver.TCPServer(("", PORT), handler_object)
